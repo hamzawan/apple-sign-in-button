@@ -4,22 +4,51 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Sign in with Apple</title>
-</head>
-<body>
     <script src="https://appleid.cdn-apple.com/appleauth/static/jsapi/appleid/1/en_US/appleid.auth.js"></script>
-    <div id="appleid-signin" class="signin-button" data-color="black" data-border="true" data-type="sign in"></div>
     <script>
-        AppleID.auth.init({
-            clientId: 'com.mombrain.peptalk',
-            scope: 'name email',
-            redirectURI: 'http://127.0.0.1:8000/api/auth-code/',
-            state: 'YOUR_STATE',
-            usePopup: true // Set to false to redirect the user instead of a popup
-        });
+        function getQueryParams() {
+            const params = {};
+            const queryString = window.location.search.substring(1);
+            const regex = /([^&=]+)=([^&]*)/g;
+            let m;
+            while ((m = regex.exec(queryString))) {
+                params[decodeURIComponent(m[1])] = decodeURIComponent(m[2]);
+            }
+            return params;
+        }
 
-        document.getElementById('appleid-signin').addEventListener('click', function () {
-            AppleID.auth.signIn();
-        });
+        function handleAppleSignIn() {
+            const state = 'LA'; // Setting state to 'LA'
+
+            AppleID.auth.init({
+                clientId: 'com.mombrain.peptalk',
+                scope: 'name email',
+                redirectURI: 'https://apple-sign-in-button.vercel.app/',
+                state: 'LA',
+                usePopup: true // Set to false to redirect the user instead of a popup
+            });
+            
+            document.getElementById('appleid-signin').addEventListener('click', function () {
+                AppleID.auth.signIn();
+            });
+
+            const params = getQueryParams();
+            if (params.code) {
+                document.getElementById('auth-code').textContent = params.code;
+            }
+            if (params.state) {
+                document.getElementById('state').textContent = params.state;
+            }
+        }
     </script>
+</head>
+<body onload="handleAppleSignIn()">
+    <div id="appleid-signin" class="signin-button" data-color="black" data-border="true" data-type="sign in"></div>
+    <div>
+        <h3>Authorization Code:</h3>
+        <p id="auth-code">No authorization code received yet.</p>
+        <h3>State:</h3>
+        <p id="state">No state received yet.</p>
+    </div>
 </body>
 </html>
